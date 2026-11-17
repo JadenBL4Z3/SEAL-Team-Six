@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PulseGrid — Factory Ripple Monitor</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo">⚡</div>
+  <div>
+    <h1>PulseGrid</h1>
+    <div class="subtitle">Factory Ripple Monitor — see inefficiencies <i>between</i> machines, not just inside them</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="live"><span class="dot" id="liveDot"></span><span id="liveTxt">SIMULATING</span></div>
+  <div class="mono" id="clock" style="color:var(--dim); font-size:13px">Shift 00:00</div>
+  <span class="mono" id="userChip" style="display:none; font-size:12px; color:var(--dim)"></span>
+  <button id="voiceBtn" title="Voice announcements on/off">🔊 Voice</button>
+  <button id="logoutBtn" style="display:none">⎋ Logout</button>
+  <button id="pauseBtn">⏸ Pause</button>
+</header>
+
+<div class="kpis">
+  <div class="kpi" id="kpiOut"><div class="label">Line Output</div><div class="value" id="vOut">—</div><div class="sub">units / hr (final stage)</div></div>
+  <div class="kpi" id="kpiEff"><div class="label">Line Efficiency</div><div class="value" id="vEff">—</div><div class="sub">avg of all machines</div></div>
+  <div class="kpi" id="kpiWip"><div class="label">Work In Progress</div><div class="value" id="vWip">—</div><div class="sub">units waiting between stages</div></div>
+  <div class="kpi" id="kpiAl"><div class="label">Active Alerts</div><div class="value" id="vAl">0</div><div class="sub">warnings + criticals</div></div>
+</div>
+
+<section>
+  <h2>Live Machine Grid <span class="tag">REALTIME TELEMETRY</span></h2>
+  <div class="grid" id="machineGrid"></div>
+</section>
+
+<section class="factory-section" aria-labelledby="factoryTitle">
+  <div class="factory-heading">
+    <h2 id="factoryTitle">3D Factory View <span class="tag">INTERACTIVE LIVE LINE</span></h2>
+    <div class="factory-hint">Drag to orbit · scroll to zoom · click a machine to inspect it</div>
+  </div>
+  <div class="factory-layout">
+    <div class="factory-canvas-wrap">
+      <canvas id="factoryCanvas" aria-label="Interactive 3D view of the seven connected factory machines">
+        Your browser does not support the canvas needed for the 3D factory view.
+      </canvas>
+      <div class="factory-canvas-caption"><span class="factory-live-dot"></span> Live simulation · machine colors follow current status</div>
+    </div>
+    <aside class="factory-side" aria-label="Factory machine details">
+      <div class="factory-side-title">Select a station</div>
+      <div class="factory-machines" id="factoryMachines"></div>
+      <div class="factory-detail" aria-live="polite">
+        <div class="factory-detail-label">Selected machine</div>
+        <div class="factory-detail-name" id="factoryDetailName">Furnace</div>
+        <div class="factory-detail-status" id="factoryDetailStatus">OK</div>
+        <div class="factory-detail-row"><span>Output</span><b id="factoryDetailOutput">—</b></div>
+        <div class="factory-detail-row"><span>Queue after</span><b id="factoryDetailQueue">—</b></div>
+        <div class="factory-detail-row" id="factoryTempRow"><span>Temperature</span><b id="factoryDetailTemp">—</b></div>
+      </div>
+      <button id="factoryResetView" class="factory-reset" type="button">↻ Reset view</button>
+      <div class="factory-legend"><span><i class="legend-ok"></i>Healthy</span><span><i class="legend-warn"></i>Warning</span><span><i class="legend-crit"></i>Critical</span></div>
+    </aside>
+  </div>
+</section>
+
+<section>
+  <h2>Ripple Map <span class="tag">HOW ONE MACHINE AFFECTS THE LINE</span></h2>
+  <div class="ripple-wrap">
+    <svg id="rippleSvg" width="960" height="230" viewBox="0 0 960 230"></svg>
+  </div>
+</section>
+
+<div class="split">
+  <section>
+    <h2>Early Warning Panel <span class="tag">PREDICTIVE</span></h2>
+    <div class="alerts-list" id="alertsList"><div class="empty">No anomalies detected. Line is healthy.</div></div>
+  </section>
+
+  <section>
+    <h2>What-If Planner</h2>
+    <div class="slider-row">
+      <label>Conveyor B speed <b class="mono" id="sliderVal">100%</b></label>
+      <input type="range" id="whatIf" min="30" max="100" value="100">
+    </div>
+    <div class="proj">
+      <div class="label" style="color:var(--dim); font-size:11px; text-transform:uppercase; letter-spacing:1px">Projected line output</div>
+      <div class="big" id="projOut">—</div>
+      <div id="projDelta" class="delta-flat" style="font-size:12px; margin-top:4px">vs current</div>
+      <div class="insight" id="projNote">Move the slider to simulate rebalancing the line before problems hit.</div>
+    </div>
+    <button id="applyBtn" style="margin-top:12px">Apply to simulation</button>
+    <div class="insight">Tip: slowing a mid-line machine slightly can <b>drain queues</b> upstream with almost no output loss — a hidden inefficiency conventional dashboards miss.</div>
+  </section>
+</div>
+
+<section style="background:transparent; border:none; padding:0">
+  <div class="fault-bar" style="background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 16px">
+    <span class="lbl">Demo controls</span>
+    <button class="warn" id="btnCooler">🔥 Inject: Cooler overheat</button>
+    <button class="danger" id="btnJam">🚫 Inject: Conveyor A jam</button>
+    <button class="warn" id="btnPower">🔌 Inject: Power dip</button>
+    <button id="btnFix">✅ Resolve all</button>
+    <button id="btnReset">↺ Reset</button>
+  </div>
+</section>
+
+<footer>
+  PulseGrid v1.0 · Demo runs fully offline on simulated telemetry · The monitoring &amp; prediction logic is data-source agnostic
+  (works with any live feed: IoT sensors / PLC / OPC-UA). Same model scales to city infrastructure: traffic ↔ power ↔ water.
+</footer>
+
+<script src="js/app.js"></script>
+</body>
+</html>
